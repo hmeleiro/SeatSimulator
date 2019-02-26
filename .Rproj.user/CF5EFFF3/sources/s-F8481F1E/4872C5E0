@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1064693362",
+    "hash" : "2648213482",
     "id" : "4872C5E0",
-    "lastKnownWriteTime" : 1551192104,
-    "last_content_update" : 1551192104834,
+    "lastKnownWriteTime" : 1551192425,
+    "last_content_update" : 1551192425199,
     "path" : "~/Google Drive/DATOS/R/SIMULACION ELECCIONES/shinyapp/app.R",
     "project_path" : "app.R",
     "properties" : {
-        "cursorPosition" : "617,1",
-        "scrollLine" : "602"
+        "cursorPosition" : "58,168",
+        "scrollLine" : "38"
     },
     "relative_order" : 1,
     "source_on_save" : false,

@@ -53,10 +53,10 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
             las variaciones de los resultados de cada uno de ellos respecto a su media nacional en las elecciones generales de 2016.</p>"),
        HTML("<p style='text-align:justify'>La asignación de escaños a las provincias está actualizada en base a las informaciones confirmadas por el 
             <a href = 'https://www.europapress.es/asturias/noticia-bajada-poblacion-asturias-reduce-representacion-congreso-diputados-proximas-generales-20190220102710.html'>
-            Ministerio del Interior</a> según las cuales Asturias y Valencia pierden un diputado a costa de Madrid y Barcelona</p>"),
+            Ministerio del Interior</a> según las cuales Asturias y Valencia pierden un diputado a costa de Madrid y Barcelona.</p>"),
         HTML("<p style='text-align:justify'>* Al ser un fenómeno nuevo y no tener resultados anteriores en algunas provincias, se ha realizado 
               un tratamiento especial para Vox en base a las transferencias de voto de las encuestas (sabemos que aproximadamente el 60% de su voto viene 
-              del PP, el 18% de C's, el 4% de Podemos, el 3% del PSOE y el 15% de la abstención). Se asume que estas transferencias son iguales en todas las provincias</p>"),
+              del PP, el 18% de C's, el 4% de Podemos, el 3% del PSOE y el 15% de la abstención). Se asume que estas transferencias son iguales en todas las provincias.</p>"),
        
        sliderInput("PP",
                    "Partido Popular:",
