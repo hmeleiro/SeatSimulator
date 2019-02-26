@@ -23,6 +23,7 @@ showtext_opts(dpi = 112)
 
 provincias <- read_csv("data/data.csv")
 
+# Creo objetos con los promedios de las encuestas para cada partido para introducir en los valores iniciales del app
 PP.mean <- unique(provincias$promedio.encuestas[provincias$siglas == "PP"])
 PSOE.mean <- unique(provincias$promedio.encuestas[provincias$siglas == "PSOE"])
 UP.mean <- unique(provincias$promedio.encuestas[provincias$siglas == "UP"])
@@ -328,8 +329,6 @@ server <- function(input, output, session) {
     
     
     # AGREGACION DE RESULTADOS
-    
-    #results <- as_tibble(data_tot[, c(1,2,4)]) 
     
     provs <- provincias[, c(2,3,4)] 
     provs <- provs[!duplicated(provs$Código.de.Provincia),]
