@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1550756179729.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "4872C5E0",
+    "lastKnownWriteTime" : 1551190949,
+    "last_content_update" : 1551190949600,
+    "path" : "~/Google Drive/DATOS/R/SIMULACION ELECCIONES/shinyapp/app.R",
+    "project_path" : "app.R",
+    "properties" : {
+        "cursorPosition" : "202,41",
+        "scrollLine" : "177"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

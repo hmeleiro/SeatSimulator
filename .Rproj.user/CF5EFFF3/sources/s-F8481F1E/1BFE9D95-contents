@@ -1,0 +1,135 @@
+library(elecciones)
+library(tidyverse)
+library(SciencesPo)
+library(electoral)
+
+# Importo los datos
+seats <- readxl::read_xlsx("~/Google Drive/DATOS/R/SIMULACION ELECCIONES/shinyapp/data/26J_seats.xlsx")  # Reparto de escaños por provincias
+provincias <- readr::read_csv("~/Google Drive/DATOS/R/SIMULACION ELECCIONES/shinyapp/data/votoprovincias26J.csv") # Resultados 26J
+pond <- readxl::read_xlsx("~/Google Drive/DATOS/R/SIMULACION ELECCIONES/shinyapp/data/ponderaciones encuestas.xlsx") # Tabla con el promedio de las encuestas y los resultados agregados a nivel nacional
+
+
+# Creo un array con los ids de los partidos 
+parties <- unique(provincias$siglas)
+parties <- parties[parties != "VOX"] # <- (sin VOX porque tiene un tratamiento especial)
+
+# Creo dos columnas vacias. 
+# 1) En una almacenaré las variaciones procentuales de cada partido entre su media nacional y sus resultados en las provincias
+# 2) En la otra almacenaré el resultado de aplicar estos swings provinciales al promedio de las encuestas (o más bien a los inputs introducidos en la shiny app)
+provincias$var.media.nacional <- NA
+provincias$sobrevalido2019 <- NA
+
+
+## BUCLE 1: CALCULO EL PRONÓSTICO PARA CADA PROVINCIA EN FUNCIÓN DEL PROMEDIO DE LAS ENCUESTAS Y LOS SWINGS DE CADA PARATIDO
+
+for (p in parties) {
+  
+  # Calculo el swing provincial con los datos de las elecciones de 2016
+  provincias$var.media.nacional[provincias$siglas == p] <- provincias$sobrevalido[provincias$siglas == p]*100 - pond$resultados26J[pond$partido == p]
+  
+  # Escalo los swings en función del promedio de las encuestas (o más bien a los inputs introducidos en la shiny app)
+  provincias$var.media.nacional[provincias$siglas == p] <- (provincias$var.media.nacional[provincias$siglas == p] * pond$promedio.encuestas[pond$partido == p]) / pond$resultados26J[pond$partido == p]
+  
+  #aplico los swings al promedio de las encuestas (o más bien a los inputs introducidos en la shiny app)
+  provincias$sobrevalido2019[provincias$siglas == p] <- (pond$promedio.encuestas[pond$partido == p]  + provincias$var.media.nacional[provincias$siglas == p]) / 100 
+
+  print(p)
+  print(provincias$sobrevalido2019[provincias$siglas == p])
+}
+
+# Tratamiento especial para Vox: No escalo los swings, los aplico directamente al promedio 
+# porque hay provincias en las que Vox no se presentó y si no lo hago así darían cero.
+
+VOXswing <- provincias$var.media.nacional[provincias$siglas == "PP"] * 0.6725 +
+  provincias$var.media.nacional[provincias$siglas == "C's"] * 0.2525 +
+  provincias$var.media.nacional[provincias$siglas == "PSOE"] * 0.03 +
+  provincias$var.media.nacional[provincias$siglas == "UP"] * 0.045
+
+p <- "VOX"
+
+provincias$var.media.nacional[provincias$siglas == p] <- VOXswing
+provincias$sobrevalido2019[provincias$siglas == p] <- (pond$promedio.encuestas[pond$partido == p]  + provincias$var.media.nacional[provincias$siglas == p]) / 100 
+
+
+
+# Esto es un seguro, en principio el resultado del bucle no debería darle votos 
+# a estos partidos en otras provincias fuera de su territorio, pero por si acaso.
+provincias$sobrevalido2019[provincias$siglas %in% c("EAJ-PNV", "EH.Bildu") & provincias$Nombre.de.Comunidad != "País Vasco"] <- 0
+provincias$sobrevalido2019[provincias$siglas %in% c("CDC", "ERC-CATSÍ") & provincias$Nombre.de.Comunidad != "Cataluña"] <- 0
+provincias$sobrevalido2019[provincias$siglas == "CCa-PNC" & provincias$Nombre.de.Comunidad != "Canarias"] <- 0
+
+# Calculo el número de votos en función de los votos válidos de 2016
+provincias$votos2019 <- NA
+provincias$votos2019 <- provincias$sobrevalido2019 * provincias$Votos.válidos
+provincias$votos2019 <- round(provincias$votos2019, 0)
+
+provincias <- provincias[provincias$votos2019 > 0,]
+
+# Resumen votos2019 nacional (votos)
+provincias %>% group_by(siglas) %>% 
+  summarise(votos2019 = sum(votos2019), votos2016 = sum(votos)) %>% 
+  arrange(-votos2019) %>% 
+  mutate(diff = votos2019 - votos2016)
+
+
+
+## BUCLE 2: UNA VEZ QUE TENEMOS EL NÚMERO DE VOTOS POR PROVINCIAS DE CADA PARTIDO ITERAMOS POR CADA PROVINCIA PARA HACER EL REPARTO DE ESCAÑOS
+
+results <- NA # Creo in data frame vacío en el que voy a ir acumulando los resultados de cada provincia
+provs <- unique(provincias$Código.de.Provincia) # Creo un array con los códigos de las provincias para que itere por ellos el bucle
+
+for (p in provs) {
+  parties <- provincias$siglas[provincias$Código.de.Provincia == p] # Crea un objeto con los partidos en la provincia p
+  votos <- provincias$votos2019[provincias$Código.de.Provincia == p] # Crea un objeto con los votos a los partidos de la provincia p
+  escaños <- seats$seats[seats$code == p] # Crea un objeto con el número de escaños a repartir en la provincia p
+  prov <- seats$prov[seats$code == p] # Crea un objeto con el nombre de la provincia p
+  
+  d <- seats_ha(parties = parties, 
+                votes = votos, 
+                n_seats = escaños,
+                method = "dhondt")
+  
+  data <- tibble(cod.prov = p,
+                 provincia = prov,
+                 Party = names(d),
+                 Seats = as.numeric(d))
+  
+  
+  # Unimos el resultado con el data frame vacío que hemos creado al principio, pero la segunda 
+  # y sucesivas veces que itere el bucle ya no estará vacío, sino que irá acumulando cada una de las provincias
+  results <- rbind(results, data) 
+}
+
+results <- results[-1,] # Le quitamos la primera fila al data frame acumulado porque al crear el objeto vacía hay una linea con NAs
+
+
+# AGREGACION DE RESULTADOS
+
+provs <- provincias[, c(1,2,3)] 
+provs <- provs[!duplicated(provs$Código.de.Provincia),]
+
+results <- merge(results, provs, by.x = "cod.prov", by.y = "Código.de.Provincia", all = T)
+
+ccaa <- results %>% group_by(Nombre.de.Comunidad, Party) %>% summarise(seats = sum(Seats))
+
+ccaa_results <- spread(ccaa, "Party", "seats") # A nivel de CCA (escaños)
+prov_results <- spread(results, key = "Party", value = "Seats") # A nivel de provincia (escaños)
+nacional_results <- results %>% group_by(Party) %>% summarise(seats = sum(Seats)) %>% arrange(-seats) # A nivel nacional (escaños)
+nacional_results_votos <- provincias %>% group_by(siglas) %>% summarise(votos2019 = sum(votos2019), votos2016 = sum(votos)) %>% arrange(-votos2019) %>% mutate(diff = votos2019 - votos2016) # A nivel nacional (votos)
+
+# Imprimo los resultados
+nacional_results_votos
+nacional_results
+ccaa_results
+prov_results
+
+
+
+
+
+
+
+
+
+
+

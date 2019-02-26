@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1551089945944.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "1BFE9D95",
+    "lastKnownWriteTime" : 1551093918,
+    "last_content_update" : 1551093918588,
+    "path" : "~/Desktop/simulador/simulacion.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "51,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

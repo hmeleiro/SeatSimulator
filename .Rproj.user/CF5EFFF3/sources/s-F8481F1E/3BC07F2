@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1551189167286.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3BC07F2",
+    "lastKnownWriteTime" : 4294967302,
+    "last_content_update" : 1551189167286,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "4FE68D71",
+        "caption" : "provincias",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=provincias&cache_key=4FE68D71",
+        "displayedObservations" : 520,
+        "environment" : "",
+        "object" : "provincias",
+        "preview" : 0,
+        "totalObservations" : 520,
+        "variables" : 8
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

@@ -1,0 +1,12 @@
+name: SimuladorGenerales
+title: SimuladorGenerales
+username:
+account: meleiro
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 725731
+bundleId: 1900409
+url: https://meleiro.shinyapps.io/SimuladorGenerales/
+when: 1551177810.21053
+asMultiple: FALSE
+asStatic: FALSE

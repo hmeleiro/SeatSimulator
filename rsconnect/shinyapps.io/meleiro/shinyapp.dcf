@@ -1,0 +1,12 @@
+name: shinyapp
+title: shinyapp
+username:
+account: meleiro
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 725748
+bundleId: 1884292
+url: https://meleiro.shinyapps.io/shinyapp/
+when: 1550579523.65782
+asMultiple: FALSE
+asStatic: FALSE
