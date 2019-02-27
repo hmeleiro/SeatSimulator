@@ -7,19 +7,20 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
-library(tidyverse)
-library(ggparliament)
+require(shiny)
+require(tidyverse)
+require(ggparliament)
 require(electoral)
 require(readxl)
 require(DT)
 require(shinythemes)
 require(showtext)
+require(scales)
 
 font_add_google(name = "Source Sans Pro", family = "Source Sans Pro",
                 regular.wt = 300, bold.wt = 700)
 showtext_auto()
-showtext_opts(dpi = 112)
+showtext_opts(dpi = 160)
 
 provincias <- read_csv("data/data.csv")
 
@@ -90,31 +91,31 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                    value = VOX.mean),
        sliderInput("ERC",
                    "ERC:",
-                   round = -1, step = 0.1, sep = "" , post = "%", ticks = FALSE,
+                   round = -2, step = 0.01, sep = "" , post = "%", ticks = FALSE,
                    min = 0,
                    max = 7.48,
                    value = ERC.mean),
        sliderInput("CDC",
                    "CDC:",
-                   round = -1, step = 0.1, sep = "" , post = "%", ticks = FALSE,
+                   round = -2, step = 0.01, sep = "" , post = "%", ticks = FALSE,
                    min = 0,
                    max = 6.64,
                    value = CDC.mean),
        sliderInput("PNV",
                    "PNV:",
-                   round = -1, step = 0.1, sep = "" , post = "%", ticks = FALSE,
+                   round = -2, step = 0.01, sep = "" , post = "%", ticks = FALSE,
                    min = 0,
                    max = 6.26,
                    value = PNV.mean),
        sliderInput("Bildu",
                    "EH Bildu:",
-                   round = -1, step = 0.1, sep = "" , post = "%", ticks = FALSE,
+                   round = -2, step = 0.01, sep = "" , post = "%", ticks = FALSE,
                    min = 0,
                    max = 5.95,
                    value = Bildu.mean),
        sliderInput("CC",
                    "Coalición Canaria:",
-                   round = -1, step = 0.1, sep = "" , post = "%", ticks = FALSE,
+                   round = -2, step = 0.01, sep = "" , post = "%", ticks = FALSE,
                    min = 0,
                    max = 5.45,
                    value = CC.mean),
@@ -136,6 +137,7 @@ ui <- fluidPage(theme = shinytheme("cosmo"),
                   dataTableOutput("ccaa")),
          tabPanel("Provincias", 
                   h3("Reparto de escaños por provincias"),
+                  plotOutput("stepplot", height = "500px"),
                   dataTableOutput("provincias")))
      )
    )
@@ -273,6 +275,8 @@ server <- function(input, output, session) {
     
     
   })
+  
+
   
   ###############################
   ### TABLA MAYORÍAS BLOQUES ###
@@ -550,7 +554,109 @@ server <- function(input, output, session) {
      
    }, server = T)
    
+   #################
+   ### STEP PLOT ###
+   #################
+   output$stepplot <- renderPlot({
+     
+     
+     
+     # Creo un array con los inputs
+     media.encuestas <- c(PP = input$PP, PSOE = input$PSOE, UP = input$UP, "C's" =  input$Cs, VOX = input$Vox, 
+                          "ERC-CATSÍ" = input$ERC, CDC = input$CDC, "EAJ-PNV" = input$PNV, "EH.Bildu" = input$Bildu, "CCa-PNC" = input$CC)
+     
+     # Creo un array con los ids de los partidos 
+     parties <- unique(provincias$siglas)
+     
+     provincias$sobrevalido2019 <- NA
+     
+     for (p in parties) {
+       
+       provincias$sobrevalido2019[provincias$siglas == p] <- provincias$swingfactor[provincias$siglas == p] * media.encuestas[names(media.encuestas) == p]
+       
+       
+     }
+     
+     
+     ## UNA VEZ QUE TENEMOS EL NÚMERO DE VOTOS POR PROVINCIAS DE CADA PARTIDO ITERAMOS POR CADA PROVINCIA PARA HACER EL REPARTO DE ESCAÑOS
+     
+     results <- NA # Creo in data frame vacío en el que voy a ir acumulando los resultados de cada provincia
+     provs <- unique(provincias$Código.de.Provincia) # Creo un array con los códigos de las provincias para que itere por ellos el bucle
+     
+     for (p in provs) {
+       
+       x <- provincias[provincias$Código.de.Provincia == p,]
+       
+       parties <- x$siglas # Crea un objeto con los partidos en la provincia p
+       votos <- x$sobrevalido2019 # Crea un objeto con los votos a los partidos de la provincia p
+       escaños <- unique(x$seats) # Crea un objeto con el número de escaños a repartir en la provincia p
+       prov <- unique(x$Nombre.de.Provincia) # Crea un objeto con el nombre de la provincia p
+       
+       votos[votos < 3] <- 0
+       
+       d <- seats_ha(parties = parties, 
+                     votes = votos, 
+                     n_seats = escaños,
+                     method = "dhondt")
+       
+       data <- tibble(cod.prov = p,
+                      provincia = prov,
+                      Party = names(d),
+                      Seats = as.numeric(d))
+       
+       
+       # Unimos el resultado con el data frame vacío que hemos creado al principio, pero la segunda 
+       # y sucesivas veces que itere el bucle ya no estará vacío, sino que irá acumulando cada una de las provincias
+       results <- rbind(results, data) 
+     }
+     
+     results <- results[-1,] # Le quitamos la primera fila al data frame acumulado porque al crear el objeto vacía hay una linea con NAs
+     
+     
+     # AGREGACION DE RESULTADOS
+     
+     provs <- provincias[, c(2,3,4)] 
+     provs <- provs[!duplicated(provs$Código.de.Provincia),]
+     
+     results <- merge(results, provs, by.x = "cod.prov", by.y = "Código.de.Provincia")
+     
+     
+     seatprovs <- provincias[, c("Código.de.Provincia", "seats")]
+     print(seatprovs)
+     print(results)
+     
+     x <- merge(results, seatprovs, by.x = "cod.prov", by.y = "Código.de.Provincia")
+     
+     x$seats_pct <- x$Seats / x$seats
+     
+     x <- x[x$Party %in% c("PP", "PSOE", "C's", "UP", "VOX"),]
+     
+     x$Party <- factor(x$Party, levels = c("PSOE", "PP", "C's", "UP", "VOX"))
+     
+     colores <- c("#EF1C25", "#03A2DD", "#FB5000", "#612d62", "#66bc29")
+     
+     x %>% ggplot(aes(x = seats, y = seats_pct)) + 
+       geom_step(aes(color = Party), show.legend = F, size = 1) + 
+       scale_color_manual(values = colores) + 
+       scale_y_continuous(minor_breaks = F, labels = percent, breaks = c(0, 0.5, 1)) + 
+       scale_x_log10(minor_breaks = F, limits = c(1, 37), breaks = c(1,5,37), labels = c("Ceuta\ny Melilla", "Jaén,\nNavarra,\nCantabria,\netc...", "Madrid")) +
+       facet_wrap(~Party) +
+       labs(x = "\nNúmero de escaños de la provincia",
+            y = "% de escaños conseguidos\n",
+            color = NULL,
+            subtitle = "Ceuta y Melilla reparten 1 escaño cada una, Jaén, Navarra y Cantabria 5 y Madrid 37.",
+            title = "Las provincias pequeñas para los partidos grandes") +
+       theme_minimal(base_family = "Source Sans Pro", base_size = 11) + 
+       theme(plot.title = element_text(face = "bold"), 
+             strip.text = element_text(face = "bold"), 
+             panel.spacing.x = unit(1.5, "lines"), 
+             plot.margin = unit(c(1,1,1,1), "lines"))
+
+   })
    
+   #######################
+   ### TABLA PROVINCIAS ###
+   #######################
    output$provincias <- renderDataTable({
      
      
