@@ -5,8 +5,8 @@ account: meleiro
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 725731
-bundleId: 1900801
+bundleId: 1902915
 url: https://meleiro.shinyapps.io/SimuladorGenerales/
-when: 1551192246.92519
+when: 1551256386.21779
 asMultiple: FALSE
 asStatic: FALSE

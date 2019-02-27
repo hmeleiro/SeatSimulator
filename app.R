@@ -193,6 +193,8 @@ server <- function(input, output, session) {
       escaños <- unique(x$seats) # Crea un objeto con el número de escaños a repartir en la provincia p
       prov <- unique(x$Nombre.de.Provincia) # Crea un objeto con el nombre de la provincia p
       
+      votos[votos < 3] <- 0
+      
       d <- seats_ha(parties = parties, 
                     votes = votos, 
                     n_seats = escaños,
@@ -309,6 +311,8 @@ server <- function(input, output, session) {
       escaños <- unique(x$seats) # Crea un objeto con el número de escaños a repartir en la provincia p
       prov <- unique(x$Nombre.de.Provincia) # Crea un objeto con el nombre de la provincia p
       
+      votos[votos < 3] <- 0
+      
       d <- seats_ha(parties = parties, 
                     votes = votos, 
                     n_seats = escaños,
@@ -333,7 +337,7 @@ server <- function(input, output, session) {
     provs <- provincias[, c(2,3,4)] 
     provs <- provs[!duplicated(provs$Código.de.Provincia),]
     
-    results <- merge(results, provs, by.x = "provincia", by.y = "Nombre.de.Provincia")
+    results <- merge(results, provs, by.x = "cod.prov", by.y = "Código.de.Provincia")
     
     ccaa <- results %>% group_by(Nombre.de.Comunidad, Party) %>% summarise(seats = sum(Seats))
     
@@ -421,6 +425,8 @@ server <- function(input, output, session) {
        escaños <- unique(x$seats) # Crea un objeto con el número de escaños a repartir en la provincia p
        prov <- unique(x$Nombre.de.Provincia) # Crea un objeto con el nombre de la provincia p
        
+       votos[votos < 3] <- 0
+       
        d <- seats_ha(parties = parties, 
                      votes = votos, 
                      n_seats = escaños,
@@ -447,7 +453,7 @@ server <- function(input, output, session) {
      provs <- provincias[, c(2,3,4)] 
      provs <- provs[!duplicated(provs$Código.de.Provincia),]
      
-     results <- merge(results, provs, by.x = "provincia", by.y = "Nombre.de.Provincia")
+     results <- merge(results, provs, by.x = "cod.prov", by.y = "Código.de.Provincia")
 
      nacional_results <- results %>% group_by(Party) %>% summarise(seats = sum(Seats)) %>% arrange(-seats) # A nivel nacional (escaños)
      
@@ -501,6 +507,8 @@ server <- function(input, output, session) {
        escaños <- unique(x$seats) # Crea un objeto con el número de escaños a repartir en la provincia p
        prov <- unique(x$Nombre.de.Provincia) # Crea un objeto con el nombre de la provincia p
        
+       votos[votos < 3] <- 0
+       
        d <- seats_ha(parties = parties, 
                      votes = votos, 
                      n_seats = escaños,
@@ -527,7 +535,7 @@ server <- function(input, output, session) {
      provs <- provincias[, c(2,3,4)] 
      provs <- provs[!duplicated(provs$Código.de.Provincia),]
      
-     results <- merge(results, provs, by.x = "provincia", by.y = "Nombre.de.Provincia")
+     results <- merge(results, provs, by.x = "cod.prov", by.y = "Código.de.Provincia")
      
      ccaa <- results %>% group_by(Nombre.de.Comunidad, Party) %>% summarise(seats = sum(Seats))
     
@@ -577,6 +585,8 @@ server <- function(input, output, session) {
        escaños <- unique(x$seats) # Crea un objeto con el número de escaños a repartir en la provincia p
        prov <- unique(x$Nombre.de.Provincia) # Crea un objeto con el nombre de la provincia p
        
+       votos[votos < 3] <- 0
+       
        d <- seats_ha(parties = parties, 
                      votes = votos, 
                      n_seats = escaños,
@@ -601,7 +611,7 @@ server <- function(input, output, session) {
      provs <- provincias[, c(2,3,4)] 
      provs <- provs[!duplicated(provs$Código.de.Provincia),]
      
-     results <- merge(results, provs, by.x = "provincia", by.y = "Nombre.de.Provincia")
+     results <- merge(results, provs, by.x = "cod.prov", by.y = "Código.de.Provincia")
      
      prov_results <- spread(results, key = "Party", value = "Seats") # A nivel de provincia (escaños)
      prov_results <- prov_results[, c(3,1,11,12,13,5,14,10,7,8,9,6)]
